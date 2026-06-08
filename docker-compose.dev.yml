@@ -1,0 +1,60 @@
+# ════════════════════════════════════════════════════
+# docker-compose.dev.yml — РАЗРАБОТКА и ОТЛАДКА
+#
+# Запуск: docker compose -f docker-compose.dev.yml up
+#
+# Отличия от prod:
+#   - Код монтируется напрямую (hot-reload без пересборки)
+#   - --reload флаг uvicorn (авто-перезапуск при изменении .py)
+#   - Порт открыт на 0.0.0.0 (доступен с любого IP)
+#   - Лимиты ресурсов сняты
+#   - Уровень логов: DEBUG
+# ════════════════════════════════════════════════════
+
+services:
+
+  limit-service-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: limit-service-dev
+
+    # Не перезапускаем автоматически в dev
+    restart: "no"
+
+    # Открыт на все интерфейсы — доступен с вашего ПК
+    ports:
+      - "0.0.0.0:8001:8001"
+
+    env_file:
+      - .env.dev
+
+    volumes:
+      # 🔑 Монтируем код напрямую — любое изменение .py сразу применяется
+      - .:/app
+      # База данных разработки — отдельная от prod
+      - ./db-dev:/data
+
+    # Переопределяем команду запуска: добавляем --reload
+    command: >
+      uvicorn main:app
+      --host 0.0.0.0
+      --port 8001
+      --reload
+      --reload-dir /app
+      --log-level debug
+      --access-log
+
+    environment:
+      # Переопределяем путь к БД для dev-окружения
+      - DATABASE_URL=sqlite:////data/limits-dev.db
+      - LOG_LEVEL=DEBUG
+
+    # Нет ограничений ресурсов в dev
+    networks:
+      - limit-net-dev
+
+networks:
+  limit-net-dev:
+    driver: bridge

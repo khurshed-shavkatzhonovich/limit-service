@@ -1,0 +1,79 @@
+# ════════════════════════════════════════════════════
+# docker-compose.yml — ПРОДАКШН конфигурация
+# Запуск: docker compose up -d
+# ════════════════════════════════════════════════════
+
+services:
+
+  limit-service:
+    # Собираем образ из текущей папки
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Имя контейнера (удобно для команд)
+    container_name: limit-service
+
+    # Всегда перезапускать при падении
+    restart: unless-stopped
+
+    # Порт: хост:контейнер
+    # Если nginx проксирует — можно 127.0.0.1:8001:8001
+    # Если хотите открыть напрямую — 0.0.0.0:8001:8001
+    ports:
+      - "127.0.0.1:8001:8001"
+
+    # Переменные окружения из файла .env
+    env_file:
+      - .env
+
+    # Volumes: постоянное хранилище данных
+    volumes:
+      # База данных SQLite — сохраняется между перезапусками
+      - limit-data:/data
+      # Логи (опционально)
+      - ./logs:/app/logs
+
+    # Проверка здоровья
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+    # Ограничения ресурсов (защита от утечек)
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"       # максимум 50% одного ядра
+          memory: 256M      # максимум 256 МБ RAM
+        reservations:
+          cpus: "0.05"
+          memory: 64M
+
+    # Логирование
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"   # максимум 10 МБ на файл лога
+        max-file: "5"     # хранить 5 файлов ротации
+
+    # Сеть
+    networks:
+      - limit-net
+
+# ── Именованные тома ────────────────────────────────
+volumes:
+  limit-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./db   # папка ./db на хосте
+
+# ── Сеть ────────────────────────────────────────────
+networks:
+  limit-net:
+    driver: bridge

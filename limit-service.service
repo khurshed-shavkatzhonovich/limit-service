@@ -1,0 +1,18 @@
+[Unit]
+Description=Limit Service — Контроль лимитов Битрикс24
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/limit-service
+EnvironmentFile=/opt/limit-service/.env
+ExecStart=/opt/limit-service/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8001 --workers 1
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=limit-service
+
+[Install]
+WantedBy=multi-user.target

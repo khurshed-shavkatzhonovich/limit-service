@@ -1,0 +1,56 @@
+# ════════════════════════════════════════════════════
+# .dockerignore — не копировать в образ
+# ════════════════════════════════════════════════════
+
+# Данные и базы
+*.db
+*.sqlite
+db/
+db-dev/
+
+# Логи
+logs/
+*.log
+
+# Python артефакты
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Виртуальное окружение
+venv/
+.venv/
+env/
+
+# Секреты (не в образ!)
+.env
+.env.dev
+.env.prod
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Резервные копии
+backups/
+*.zip
+*.tar.gz
+
+# Документация (не нужна в образе)
+ИНСТРУКЦИЯ.md
+СЕРВЕР.md
+
+# Системные
+.DS_Store
+Thumbs.db
