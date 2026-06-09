@@ -64,3 +64,6 @@ volumes/
 *.tmp
 *.temp
 .cache/
+cloudflared.deb
+.env.dev.backup
+*.deb
