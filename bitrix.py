@@ -209,7 +209,12 @@ class BitrixClient:
 
     # ── Извлечь сумму из элемента ────────────────────────────────
     def extract_amount(self, element: dict) -> Optional[float]:
-        for field in [FIELD_AMOUNT, "opportunity", "OPPORTUNITY"]:
+        # Б24 возвращает поля в camelCase: UF_CRM_5_1698135335 → ufCrm5_1698135335
+        camel = FIELD_AMOUNT.lower().replace("uf_crm_", "ufCrm").replace("_", "_")
+        field_camel = "ufCrm" + FIELD_AMOUNT.replace("UF_CRM_", "").replace("_", "_").lower()
+        # Проще — конвертируем напрямую
+        field_camel = "ufCrm5_" + FIELD_AMOUNT.split("UF_CRM_5_")[-1]
+        for field in [FIELD_AMOUNT, field_camel, "opportunity", "OPPORTUNITY"]:
             val = element.get(field)
             if val is not None:
                 try:
@@ -219,12 +224,13 @@ class BitrixClient:
         return None
 
     # ── Извлечь сырое значение валюты ────────────────────────────
-    def extract_currency_raw(self, element: dict) -> Any:
-        """Возвращает сырой ID из LIST-поля валюты"""
-        val = element.get(FIELD_CURRENCY)
-        if val is None:
-            val = element.get("currencyId")  # стандартное поле Б24
-        return val
+    def extract_department(self, element: dict, field_override: str = None) -> Optional[str]:
+        field = field_override or FIELD_DEPARTMENT
+        if field:
+            field_camel = "ufCrm5_" + field.split("UF_CRM_5_")[-1]
+            val = element.get(field) or element.get(field_camel)
+            return str(val) if val else None
+        return None
 
     # ── Извлечь подразделение ────────────────────────────────────
     def extract_department(self, element: dict, field_override: str = None) -> Optional[str]:
