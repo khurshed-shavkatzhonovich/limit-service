@@ -113,7 +113,7 @@ class BitrixClient:
         Пробуем несколько вариантов для надёжности.
         """
         candidates = [
-            f"DYNAMIC_{self.entity_type_id}_{self.category_id}",  # DYNAMIC_139_38 ← правильный
+            f"DYNAMIC_{self.entity_type_id}_STAGE_{self.category_id}",  # DYNAMIC_139_38 ← правильный
             f"DYNAMIC_{self.entity_type_id}_1",
             f"DYNAMIC_{self.entity_type_id}_0",
         ]
