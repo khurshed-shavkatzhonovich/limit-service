@@ -400,8 +400,17 @@ async def webhook_stage_change(request: Request, db: Session = Depends(get_db)):
             form = await request.form()
             body = dict(form)
             raw_body = body
-            element_id = body.get("data[FIELDS][ID]") or body.get("element_id")
-            stage_id   = body.get("data[FIELDS][STAGE_ID]") or body.get("stage_id")
+            element_id = body.get("element_id") or body.get("data[FIELDS][ID]")
+            stage_id   = body.get("stage_id") or body.get("data[FIELDS][STAGE_ID]")
+
+            # Формат от робота Б24: document_id[2] = DYNAMIC_139_31410
+            if not element_id:
+                doc_id = body.get("document_id[2]", "")
+                if doc_id:
+                    parts = doc_id.split("_")
+                    if parts:
+                        element_id = parts[-1]
+                        logger.info(f"[WEBHOOK] element_id из document_id[2]: {element_id}")
             secret     = body.get("secret", "")
             if secret and secret != WEBHOOK_SECRET:
                 raise HTTPException(403, "Неверный секрет")
